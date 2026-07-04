@@ -2,6 +2,7 @@ import os
 import re
 import io
 import logging
+import asyncio
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from PIL import Image, ImageDraw
@@ -12,8 +13,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Fallback token for local testing (Never commit your production token!)
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "YOUR_LOCAL_TEST_TOKEN")
+# Fetch token from environment variables
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends a greeting when /start is issued."""
@@ -60,7 +61,6 @@ async def generate_placeholder(update: Update, context: ContextTypes.DEFAULT_TYP
         label = f"{width} x {height}"
         
         # Calculate dynamic text placement relative to image dimensions
-        # (Using a simple bounding box calculation fallback for basic system fonts)
         text_bbox = draw.textbbox((0, 0), label)
         text_w = text_bbox[2] - text_bbox[0]
         text_h = text_bbox[3] - text_bbox[1]
@@ -84,8 +84,8 @@ async def generate_placeholder(update: Update, context: ContextTypes.DEFAULT_TYP
 
 def main() -> None:
     """Initializes and runs the bot app."""
-    if not TOKEN or TOKEN == "YOUR_LOCAL_TEST_TOKEN":
-        logger.error("No valid TELEGRAM_BOT_TOKEN found. Exiting.")
+    if not TOKEN:
+        logger.error("No valid TELEGRAM_BOT_TOKEN found in environment variables. Exiting.")
         return
 
     # Build the application container
@@ -95,8 +95,16 @@ def main() -> None:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, generate_placeholder))
 
-    # Run the continuous execution loop (Ideal for Render Background Workers)
     logger.info("Bot started successfully. Listening for updates...")
+    
+    # Explicitly create and set a running event loop to satisfy modern asyncio/Python 3.14 rules
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    # Run the continuous long polling loop
     app.run_polling()
 
 if __name__ == "__main__":
