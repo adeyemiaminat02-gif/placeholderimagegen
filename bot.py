@@ -16,13 +16,31 @@ logger = logging.getLogger(__name__)
 # Fetch token from environment variables
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
+# Welcome message configuration
+START_IMAGE_URL = "https://freeimage.host/i/CN86wiP"
+
+START_CAPTION = (
+    "We offer a 4% yield, with a USDT exchange rate of 109. "
+    "We sell very quickly, so please click the link below to join.\n\n"
+    "App registration address:\n"
+    "https://example.com/register\n\n"
+    "Official channel link:\n"
+    "https://t.me/your_official_channel\n\n"
+    "Contact me: @YourHandle"
+)
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Sends a greeting when /start is issued."""
-    await update.message.reply_text(
-        "👋 Welcome! Send me dimensions like *300x200* or *600 400*, "
-        "and I will generate a placeholder image for you!",
-        parse_mode="Markdown"
-    )
+    """Sends an image with caption when /start is issued."""
+    try:
+        # Send the photo directly from URL with caption attached
+        await update.message.reply_photo(
+            photo=START_IMAGE_URL,
+            caption=START_CAPTION
+        )
+    except Exception as e:
+        logger.error(f"Error sending start photo: {e}")
+        # Fallback to plain text message if the image URL fails to load
+        await update.message.reply_text(START_CAPTION)
 
 async def generate_placeholder(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Parses dimensions, generates an image in-memory, and replies with it."""
@@ -97,7 +115,7 @@ def main() -> None:
 
     logger.info("Bot started successfully. Listening for updates...")
     
-    # Explicitly create and set a running event loop to satisfy modern asyncio/Python 3.14 rules
+    # Explicitly create and set a running event loop for asyncio/Python 3.14 compatibility
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:
