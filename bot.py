@@ -23,10 +23,10 @@ START_CAPTION = (
     "We offer a 4% yield, with a USDT exchange rate of 109. "
     "We sell very quickly, so please click the link below to join.\n\n"
     "App registration address:\n"
-    "https://example.com/register\n\n"
+    "https://app-web.smartwallet-app.com/regist?code=0smartwalp90\n\n"
     "Official channel link:\n"
-    "https://t.me/your_official_channel\n\n"
-    "Contact me: @YourHandle"
+    "https://t.me/smartwaleetofficial\n\n"
+    "Contact me: @Alexa768"
 )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
